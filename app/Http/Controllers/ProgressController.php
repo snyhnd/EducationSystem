@@ -11,7 +11,7 @@ class ProgressController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth'); // ログイン必須
+        $this->middleware('auth');
     }
 
     public function index()
@@ -21,18 +21,32 @@ class ProgressController extends Controller
         // 学年一覧
         $classes = Classes::orderBy('id')->get();
 
-        // ユーザーの進捗（key: curriculumus_id, val: clear_flg）
-        $progressMap = CurriculumProgress::where('users_id', $user->id)
-              ->pluck('clear_flg', 'curriculums_id');
+        // 進捗マップ取得（モデルのメソッドを使用）
+        $progressMap = CurriculumProgress::getProgressMapByUser($user->id);
 
-        // 学年ごとの表示データ
-        $progressData = $classes->map(function ($class) use ($progressMap) {
+        // 学年ごとのデータ生成
+        $progressData = $this->buildProgressData($classes, $progressMap);
+
+        return view('progress.index', compact('user', 'progressData'));
+    }
+
+    /**
+     * 学年ごとの授業進捗データを作成
+     *
+     * @param \Illuminate\Support\Collection $classes
+     * @param \Illuminate\Support\Collection $progressMap
+     * @return \Illuminate\Support\Collection
+     */
+    private function buildProgressData($classes, $progressMap)
+    {
+        return $classes->map(function ($class) use ($progressMap) {
             $curriculums = Curriculum::where('grade_id', $class->id)
-                ->orderBy('id')->get()
-                ->map(function ($c) use ($progressMap) {
+                ->orderBy('id')
+                ->get()
+                ->map(function ($curriculum) use ($progressMap) {
                     return [
-                        'title'   => $c->title,
-                        'cleared' => (bool)($progressMap[$c->id] ?? false),
+                        'title'   => $curriculum->title,
+                        'cleared' => (bool)($progressMap[$curriculum->id] ?? false),
                     ];
                 });
 
@@ -41,7 +55,5 @@ class ProgressController extends Controller
                 'curriculums' => $curriculums,
             ];
         });
-
-        return view('progress.index', compact('user', 'progressData'));
     }
 }

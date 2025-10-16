@@ -24,22 +24,22 @@ class UpdateProfileRequest extends FormRequest
     public function messages()
     {
         return [
-            // ✅ ユーザーネーム
+            //ユーザーネーム
             'name.required' => 'この項目は入力必須です',
             'name.max' => '20文字以内にしてください',
 
-            // ✅ カナ
+            //カナ
             'name_kana.required' => 'この項目は入力必須です',
             'name_kana.max' => '20文字以内にしてください',
             'name_kana.regex' => 'カタカナで入力してください',
 
-            // ✅ メール
+            //メール
             'email.required' => 'この項目は入力必須です',
             'email.email' => 'メールアドレスの形式で入力してください',
             'email.min' => 'メールアドレスは8文字以上255文字以内で入力してください',
             'email.max' => 'メールアドレスは8文字以上255文字以内で入力してください',
 
-            // ✅ 画像
+            //画像
             'profile_image.image' => '指定されたファイル形式ではありません',
             'profile_image.mimes' => '指定されたファイル形式ではありません',
         ];

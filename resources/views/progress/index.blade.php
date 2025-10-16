@@ -210,12 +210,7 @@
 
     {{-- ===== 授業リスト（小1〜高3） ===== --}}
     <div class="grades-grid">
-        @foreach ([
-            '小学校1年生', '小学校2年生', '小学校3年生',
-            '小学校4年生', '小学校5年生', '小学校6年生',
-            '中学校1年生', '中学校2年生', '中学校3年生',
-            '高校1年生', '高校2年生', '高校3年生'
-        ] as $grade)
+        @foreach (config('grades.list') as $grade)
             @php
                 $colorClass = str_contains($grade, '小') ? 'elementary' :
                               (str_contains($grade, '中') ? 'junior' : 'high');

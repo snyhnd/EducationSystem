@@ -7,10 +7,22 @@ use Illuminate\Database\Eloquent\Model;
 class CurriculumProgress extends Model
 {
     protected $table = 'curriculum_progress';
-    protected $fillable = ['curriculumus_id','users_id','clear_flg'];
 
-    public function curriculum()
+    protected $fillable = [
+        'users_id',
+        'curriculums_id',
+        'clear_flg',
+    ];
+
+    /**
+     * 指定ユーザーの進捗マップを取得
+     * 
+     * @param int $userId
+     * @return \Illuminate\Support\Collection
+     */
+    public static function getProgressMapByUser($userId)
     {
-        return $this->belongsTo(Curriculum::class, 'curriculumus_id');
+        return self::where('users_id', $userId)
+            ->pluck('clear_flg', 'curriculums_id');
     }
 }
