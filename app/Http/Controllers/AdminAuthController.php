@@ -2,41 +2,60 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Admin;                 // adminsテーブルのモデル
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;  // パスワード照合
 
 class AdminAuthController extends Controller
 {
-    // ログイン画面の表示
+    /** ログイン画面表示 */
     public function showLogin()
     {
         return view('admin.login');
     }
 
-    // ログイン処理
+    /** ログイン処理（DB参照） */
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
+        $cred = $request->validate(
+            [
+                'email'    => ['required', 'email'],
+                'password' => ['required', 'string'],
+            ],
+            [
+                'email.required'    => 'メールアドレスを入力してください',
+                'email.email'       => 'メールアドレスの形式が正しくありません',
+                'password.required' => 'パスワードを入力してください',
+            ]
+        );
 
-        // 今は簡易チェック（本来は guard('admin') を使用）
-        if ($credentials['email'] === 'admin@example.com' && $credentials['password'] === 'password') {
-            // 仮ログイン成功時
-            return redirect()->route('admin.dashboard')->with('success', 'ログイン成功！');
+        // メールアドレスで管理ユーザー取得
+        $admin = Admin::where('email', $cred['email'])->first();
+
+        // 該当なし or パスワード不一致
+        if (!$admin || !Hash::check($cred['password'], $admin->password)) {
+            return back()
+                ->withErrors(['login' => 'メールアドレスまたはパスワードに誤りがあります'])
+                ->withInput();
         }
 
-        // ログイン失敗
-        return back()->withErrors([
-            'email' => 'メールアドレスまたはパスワードに誤りがあります。',
+        // ✅ ログイン成功：必要情報をセッションへ
+        session([
+            'admin_id'    => $admin->id,
+            'admin_name'  => $admin->username,
+            'admin_email' => $admin->email,
         ]);
+
+        return redirect()->route('admin.dashboard');
     }
 
-    // ログアウト処理（仮）
-    public function logout()
+    /** ログアウト */
+    public function logout(Request $request)
     {
-        // 本来は Auth::guard('admin')->logout();
-        return redirect()->route('admin.login')->with('success', 'ログアウトしました');
+        $request->session()->forget(['admin_id', 'admin_name', 'admin_email']);
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('admin.login');
     }
 }
