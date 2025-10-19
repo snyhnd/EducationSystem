@@ -17,6 +17,7 @@ class AdminAuthController extends Controller
     /** ログイン処理（DB参照） */
     public function login(Request $request)
     {
+        // ▼ バリデーション
         $cred = $request->validate(
             [
                 'email'    => ['required', 'email'],
@@ -29,33 +30,36 @@ class AdminAuthController extends Controller
             ]
         );
 
-        // メールアドレスで管理ユーザー取得
+        // ▼ メールアドレスで管理ユーザー取得
         $admin = Admin::where('email', $cred['email'])->first();
 
-        // 該当なし or パスワード不一致
+        // ▼ 該当なし or パスワード不一致
         if (!$admin || !Hash::check($cred['password'], $admin->password)) {
             return back()
                 ->withErrors(['login' => 'メールアドレスまたはパスワードに誤りがあります'])
                 ->withInput();
         }
 
-        // ✅ ログイン成功：必要情報をセッションへ
+        // ▼ ログイン成功：必要情報をセッションへ保存
         session([
             'admin_id'    => $admin->id,
             'admin_name'  => $admin->username,
             'admin_email' => $admin->email,
         ]);
 
-        return redirect()->route('admin.dashboard');
+        // ▼ ダッシュボードへ
+        return redirect()->route('admin.dashboard')->with('success', 'ログインしました');
     }
 
-    /** ログアウト */
+    /** ログアウト処理 */
     public function logout(Request $request)
     {
-        $request->session()->forget(['admin_id', 'admin_name', 'admin_email']);
+        // ▼ セッション破棄
+        $request->session()->flush();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('admin.login');
+        // ▼ 管理ログイン画面へ戻る
+        return redirect()->route('admin.login')->with('success', 'ログアウトしました');
     }
 }

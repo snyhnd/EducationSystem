@@ -2,12 +2,22 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Curriculum extends Model
 {
-    protected $table = 'curriculums'; // テーブル名が違う場合は変更
-    protected $fillable = ['title','thumbnail','video_url','grade']; // grade無ければ外してOK
+    use HasFactory;
+
+    /** 🔹明示的にテーブル名を指定（ここが重要！） */
+    protected $table = 'curriculums';
+
+    protected $fillable = [
+        'title',
+        'grade',
+        'thumbnail',
+        'video_url',
+    ];
 
     public function deliveryTimes()
     {
