@@ -2,43 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Curriculum;
-use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class TimetableController extends Controller
 {
-    /**
-     * 時間割トップ
-     * URL例: /schedule /schedule/2025/10/小学3年生
-     */
-    public function index($year = null, $month = null, $grade = null)
+    public function index(?int $year = null, ?int $month = null)
     {
-        // 年月（指定なしなら今月）
-        $date = Carbon::createFromDate($year ?? now()->year, $month ?? now()->month, 1);
-        $startOfMonth = $date->copy()->startOfMonth();
-        $endOfMonth   = $date->copy()->endOfMonth();
+        $today = now();
+        $base  = Carbon::create($year ?? $today->year, $month ?? $today->month, 1);
 
-        // 学年一覧（固定配列）
-        $grades = [
-            '小学1年生','小学2年生','小学3年生',
-            '小学4年生','小学5年生','小学6年生',
-            '中学1年生','中学2年生','中学3年生',
-            '高校1年生','高校2年生','高校3年生'
-        ];
+        $userId   = optional(auth()->user())->id;   // 未ログインでも動く
+        $matrix   = Curriculum::buildMonthMatrix($userId, $base);
+        $schedules= Curriculum::fetchForMonth($userId, $base);
 
-        // 指定がない場合は1年生
-        $selectedGrade = $grade ?? $grades[0];
-
-        // カリキュラム＋今月の配信スケジュールを取得
-        $curriculums = Curriculum::with(['deliveryTimes' => function ($query) use ($startOfMonth, $endOfMonth) {
-                $query->whereBetween('delivery_date', [$startOfMonth, $endOfMonth])
-                      ->orderBy('delivery_date')
-                      ->orderBy('start_time');
-            }])
-            ->where('grade', $selectedGrade)
-            ->get();
-
-        return view('user.timetable.index', compact('curriculums', 'date', 'grades', 'selectedGrade'));
+        return view('user.timetable.index', [
+            'current'   => $base,
+            'matrix'    => $matrix,     // 週×日で描画したいとき
+            'schedules' => $schedules,  // リスト表示したいとき
+        ]);
     }
 }

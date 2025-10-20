@@ -26,7 +26,7 @@
     .logout button{all:unset;cursor:pointer;color:#fff;font-weight:800;letter-spacing:.1em;padding:8px 12px;border-radius:8px}
     .logout button:hover{background:rgba(255,255,255,.2)}
 
-    .toolbar{display:flex;align-items:center;gap:12px;margin:14px 0 6px}
+    .toolbar{display:flex;align-items:center;gap:12px;margin:14px 0 6px;flex-wrap:wrap}
     .back{margin:8px 0;display:inline-block}
     .month-title{font-size:22px;font-weight:800}
     .nav-arrow{font-size:22px;font-weight:900;padding:0 6px}
@@ -39,15 +39,16 @@
     .grade-list a{display:block;text-align:center;padding:10px 12px;border-radius:999px;background:var(--pill);color:#1493a1;border:1px solid #b9ebf5;font-weight:700}
     .grade-list a.active{background:var(--pill-active);color:#fff;border:none}
 
-    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
-    @media (max-width:992px){.grid{grid-template-columns:repeat(2,1fr)}}
-    @media (max-width:640px){.content{grid-template-columns:1fr}.grid{grid-template-columns:1fr}}
-
-    .card{background:var(--card);border-radius:12px;box-shadow:var(--shadow);padding:14px}
-    .thumb{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;background:#eee;border:1px solid #e5e7eb}
-    .ctitle{font-weight:800;margin:10px 2px 6px}
-    .schedule{font-size:14px;color:#444;line-height:1.6;margin:4px 2px}
+    /* カレンダー */
+    .cal{width:100%;border-collapse:separate;border-spacing:8px}
+    .cal th{font-weight:800;text-align:center;color:#6b7280}
+    .cal td{vertical-align:top;background:var(--card);border-radius:12px;box-shadow:var(--shadow);padding:10px;min-height:110px}
+    .cal .day{font-weight:800;margin-bottom:6px}
+    .badge{display:inline-block;font-size:12px;padding:3px 8px;border-radius:999px;background:var(--pill);color:#1493a1;border:1px solid #b9ebf5;margin:2px 0}
+    .text-sm{font-size:13px;line-height:1.4}
     .muted{color:var(--muted)}
+
+    @media (max-width:992px){.content{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
@@ -60,7 +61,6 @@
     <a class="chip"     href="#">プロフィール設定</a>
     <div class="spacer"></div>
     <div class="logout">
-      {{-- 暫定ログアウト（routes/web.php に user.logout を用意） --}}
       <form method="POST" action="{{ route('user.logout') }}">
         @csrf
         <button type="submit">ログアウト</button>
@@ -72,13 +72,14 @@
   <a class="back" href="javascript:history.back()">&larr; 戻る</a>
 
   @php
-    $prev = $date->copy()->subMonth();
-    $next = $date->copy()->addMonth();
+    // Controller から渡ってくる $current（Carbon） をベースに prev/next を算出
+    $prev = $current->copy()->subMonth();
+    $next = $current->copy()->addMonth();
   @endphp
 
   <div class="toolbar">
     <a class="nav-arrow" href="{{ route('user.schedule', ['year'=>$prev->year, 'month'=>$prev->month, 'grade'=>$selectedGrade]) }}">◀</a>
-    <div class="month-title">{{ $date->format('Y年n月') }} スケジュール</div>
+    <div class="month-title">{{ $current->format('Y年n月') }} スケジュール</div>
     <a class="nav-arrow" href="{{ route('user.schedule', ['year'=>$next->year, 'month'=>$next->month, 'grade'=>$selectedGrade]) }}">▶</a>
     <span class="grade-pill active">{{ $selectedGrade }}</span>
   </div>
@@ -87,38 +88,55 @@
     <!-- 左カラム：学年一覧 -->
     <nav class="grade-list">
       @foreach ($grades as $g)
-        <a class="{{ $g === $selectedGrade ? 'active' : '' }}"
-           href="{{ route('user.schedule', ['year'=>$date->year, 'month'=>$date->month, 'grade'=>$g]) }}">
+        <a class="{{ (string)$g === (string)$selectedGrade ? 'active' : '' }}"
+           href="{{ route('user.schedule', ['year'=>$current->year, 'month'=>$current->month, 'grade'=>$g]) }}">
           {{ $g }}
         </a>
       @endforeach
     </nav>
 
-    <!-- 右カラム：スケジュールカード -->
-    <section class="grid">
-      @forelse ($curriculums as $cur)
-        <article class="card">
-          <img class="thumb"
-               src="{{ $cur->thumbnail ? asset($cur->thumbnail) : 'https://placehold.co/640x480?text=Thumbnail' }}"
-               alt="thumb">
-          <h3 class="ctitle">{{ $cur->title ?? '授業タイトル' }}</h3>
-          <div class="schedule">
-            @php $times = $cur->deliveryTimes ?? collect(); @endphp
-            @forelse ($times as $t)
-              @php
-                $d = \Carbon\Carbon::parse($t->delivery_date)->format('n月j日');
-                $s = \Carbon\Carbon::parse($t->start_time)->format('H:i');
-                $e = \Carbon\Carbon::parse($t->end_time)->format('H:i');
-              @endphp
-              <div>{{ $d }}　{{ $s }} ～ {{ $e }}</div>
-            @empty
-              <div class="muted">今月の配信スケジュールはありません</div>
-            @endforelse
-          </div>
-        </article>
-      @empty
-        <p class="muted">該当学年・月のカリキュラムが見つかりません。</p>
-      @endforelse
+    <!-- 右カラム：カレンダー（週×日マトリクス） -->
+    <section>
+      <table class="cal">
+        <thead>
+          <tr>
+            @foreach (['日','月','火','水','木','金','土'] as $w)
+              <th>{{ $w }}</th>
+            @endforeach
+          </tr>
+        </thead>
+        <tbody>
+          @foreach ($matrix as $week)
+            <tr>
+              @foreach ($week as $cell)
+                <td>
+                  <div class="day">{{ $cell['date']->format('j') }}</div>
+
+                  @forelse ($cell['items'] as $item)
+                    <div class="text-sm">
+                      {{-- 授業タイトル --}}
+                      <div class="badge">
+                        {{ optional($item->curriculum)->title ?? '未設定' }}
+                      </div>
+                      {{-- コマ番号 or 開始終了時刻など、あれば表示 --}}
+                      @if(!empty($item->period))
+                        <div class="muted">（{{ $item->period }}限）</div>
+                      @endif
+                      @if(!empty($item->start_time) && !empty($item->end_time))
+                        <div class="muted">
+                          {{ \Illuminate\Support\Str::of($item->start_time)->substr(0,5) }}–{{ \Illuminate\Support\Str::of($item->end_time)->substr(0,5) }}
+                        </div>
+                      @endif
+                    </div>
+                  @empty
+                    <div class="muted">予定なし</div>
+                  @endforelse
+                </td>
+              @endforeach
+            </tr>
+          @endforeach
+        </tbody>
+      </table>
     </section>
   </div>
 </div>
