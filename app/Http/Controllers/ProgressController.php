@@ -14,14 +14,17 @@ class ProgressController extends Controller
         $this->middleware('auth');
     }
 
+    /**
+     * 授業進捗一覧ページ
+     */
     public function index()
     {
         $user = Auth::user();
 
-        // 学年一覧
+        // 学年一覧（Classesテーブル）
         $classes = Classes::orderBy('id')->get();
 
-        // 進捗マップ取得（モデルのメソッドを使用）
+        // 進捗マップ取得（CurriculumProgressモデルのメソッドを利用）
         $progressMap = CurriculumProgress::getProgressMapByUser($user->id);
 
         // 学年ごとのデータ生成
@@ -31,10 +34,18 @@ class ProgressController extends Controller
     }
 
     /**
+     * 授業詳細ページ（各授業タイトルリンク先）
+     */
+    public function show($grade, $lesson)
+    {
+        return view('progress.lesson', compact('grade', 'lesson'));
+    }
+
+    /**
      * 学年ごとの授業進捗データを作成
      *
      * @param \Illuminate\Support\Collection $classes
-     * @param \Illuminate\Support\Collection $progressMap
+     * @param array $progressMap
      * @return \Illuminate\Support\Collection
      */
     private function buildProgressData($classes, $progressMap)

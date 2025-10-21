@@ -2,7 +2,6 @@
 
 @section('content')
 <style>
-    /* ===== オレンジヘッダー ===== */
     .sub-header {
         background-color: #EF6C43;
         color: #fff;
@@ -15,11 +14,7 @@
         margin: 30px auto 0;
     }
 
-    .nav-left {
-        display: flex;
-        gap: 15px;
-    }
-
+    .nav-left { display: flex; gap: 15px; }
     .nav-left a {
         background-color: #12b0b0;
         color: #fff;
@@ -29,22 +24,10 @@
         font-weight: bold;
         transition: 0.3s;
     }
+    .nav-left a.active { background-color: #0c8a8a; }
 
-    .nav-left a.active {
-        background-color: #0c8a8a;
-    }
-
-    .logout {
-        color: #fff;
-        text-decoration: none;
-        font-weight: bold;
-        font-size: 18px;
-    }
-
-    .logout:hover {
-        text-decoration: underline;
-    }
-
+    .logout { color: #fff; text-decoration: none; font-weight: bold; font-size: 18px; }
+    .logout:hover { text-decoration: underline; }
 
     .progress-container {
         width: 80%;
@@ -58,17 +41,12 @@
         color: #333;
         text-decoration: none;
         font-weight: bold;
-        margin-left: 0;
     }
-
-    .back-link:hover {
-        text-decoration: underline;
-    }
+    .back-link:hover { text-decoration: underline; }
 
     .student-info {
         display: flex;
         align-items: center;
-        justify-content: flex-start;
         gap: 20px;
         margin-bottom: 40px;
     }
@@ -84,7 +62,6 @@
     .student-text {
         font-size: 20px;
         color: #222;
-        text-align: left;
     }
 
     .grade-badge {
@@ -95,17 +72,9 @@
         margin-left: 10px;
     }
 
-    .badge-elementary {
-        background-color: #8BE6E6;
-    }
-
-    .badge-junior {
-        background-color: #66CDAA;
-    }
-
-    .badge-high {
-        background-color: #A5D86E;
-    }
+    .badge-elementary { background-color: #8BE6E6; }
+    .badge-junior { background-color: #66CDAA; }
+    .badge-high { background-color: #A5D86E; }
 
     .grade-label {
         display: inline-block;
@@ -116,37 +85,16 @@
         margin-bottom: 10px;
     }
 
-    .elementary {
-        background-color: #8BE6E6;
-    }
-
-    .junior {
-        background-color: #66CDAA;
-    }
-
-    .high {
-        background-color: #A5D86E;
-    }
-
+    .elementary { background-color: #8BE6E6; }
+    .junior { background-color: #66CDAA; }
+    .high { background-color: #A5D86E; }
 
     .grades-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 40px;
-        justify-items: start;
         margin-top: 30px;
     }
-
-    .grade-section {
-        text-align: left;
-        width: 280px;
-    }
-
-    .grade-section h3 {
-        text-align: left;
-        margin-bottom: 10px;
-    }
-
 
     .curriculum-list {
         display: flex;
@@ -160,14 +108,18 @@
         align-items: center;
     }
 
+    .curriculum-title a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .curriculum-title a:hover {
+        text-decoration: underline;
+    }
+
     .cleared-label {
         color: red;
         font-weight: bold;
-        text-align: left;
-    }
-
-    .curriculum-title {
-        color: #000;
     }
 </style>
 
@@ -190,7 +142,7 @@
 
 {{-- ===== メインコンテンツ ===== --}}
 <div class="progress-container">
-    <a href="{{ url()->previous() }}" class="back-link">← 戻る</a>
+    <a href="{{ route('top') }}" class="back-link">← 戻る</a>
 
     @php
         $gradeName = $user->grade->name ?? '未設定';
@@ -199,7 +151,8 @@
     @endphp
 
     <div class="student-info">
-        <img src="{{ asset('images/sample-avatar.png') }}" alt="プロフィール画像">
+        {{--プロフィール画像をDBから反映 --}}
+        <img src="{{ $user->profile_image ? asset('storage/'.$user->profile_image) : asset('images/sample-avatar.png') }}" alt="プロフィール画像">
         <div class="student-text">
             <h2>{{ $user->name }}さんの授業進捗</h2>
             <p>現在の学年：
@@ -208,7 +161,7 @@
         </div>
     </div>
 
-    {{-- ===== 授業リスト（小1〜高3） ===== --}}
+    {{-- ===== 授業リスト（学年ごと） ===== --}}
     <div class="grades-grid">
         @foreach (config('grades.list') as $grade)
             @php
@@ -221,13 +174,20 @@
                 <div class="curriculum-list">
                     @for ($i = 1; $i <= 5; $i++)
                         <div class="curriculum-row">
-                            @if ($grade === '小学校1年生' && ($i === 1 || $i === 2))
-                                <span class="cleared-label">受講済み</span>
-                                <span class="curriculum-title">授業タイトル{{ $i }}</span>
-                            @else
-                                <span></span>
-                                <span class="curriculum-title">授業タイトル{{ $i }}</span>
-                            @endif
+                            <span class="cleared-label">
+                                {{ $grade === $gradeName && ($i === 1 || $i === 2) ? '受講済み' : '' }}
+                            </span>
+
+                            <span class="curriculum-title">
+                                {{-- ログイン中ユーザーの学年だけリンク表示 --}}
+                                @if ($grade === $gradeName)
+                                    <a href="{{ route('progress.show', ['grade' => $grade, 'lesson' => '授業タイトル'.$i]) }}">
+                                        授業タイトル{{ $i }}
+                                    </a>
+                                @else
+                                    授業タイトル{{ $i }}
+                                @endif
+                            </span>
                         </div>
                     @endfor
                 </div>

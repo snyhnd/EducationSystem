@@ -6,6 +6,8 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\Admin\ArticleController as AdminArticleController;
+use App\Http\Controllers\TopController;
+use App\Http\Controllers\Admin\AdminTopController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,7 +33,7 @@ Route::middleware(['auth'])->group(function () {
 
     // プロフィール設定
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
 
     // パスワード変更
     Route::get('/profile/password', [ProfileController::class, 'editPassword'])->name('profile.password');
@@ -81,3 +83,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::put('/articles/{id}', [AdminArticleController::class, 'update'])->name('articles.update');
 });
 
+Route::get('/top', [TopController::class, 'index'])->name('top');
+
+Route::prefix('admin')->group(function () {
+    Route::get('/top', [AdminTopController::class, 'index'])->name('admin.top');
+});
+
+Route::get('/progress/{grade}/{lesson}', [App\Http\Controllers\ProgressController::class, 'show'])
+    ->name('progress.show');

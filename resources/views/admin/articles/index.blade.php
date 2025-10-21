@@ -101,7 +101,7 @@
 
 {{-- ===== メインコンテンツ ===== --}}
 <div class="content-container">
-    <a href="{{ url()->previous() }}" class="back-link">← 戻る</a>
+    <a href="{{ route('admin.top') }}" style="color: black; text-decoration: none;">&larr; 戻る</a>
     <h2>お知らせ一覧</h2>
 
     {{-- フラッシュメッセージ --}}
@@ -143,7 +143,7 @@
                         {{-- 削除（確認ダイアログ付き） --}}
                         <form action="{{ route('admin.articles.destroy', $article->id) }}"
                               method="POST" class="inline-form"
-                              onsubmit="return confirm('本当に削除しますか？');">
+                              onsubmit="return confirm('※{{ $article->title }} を削除してよろしいですか？');">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn-delete">削除</button>

@@ -110,7 +110,7 @@
 <div class="article-container">
 
     {{-- 戻るリンク --}}
-    <a href="{{ url()->previous() }}" class="back-link">←戻る</a>
+    <a href="{{ route('top') }}" style="color: black; text-decoration: none;">&larr; 戻る</a>
 
     {{-- 投稿日時 --}}
     <p class="date">
