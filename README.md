@@ -1,29 +1,47 @@
-# EducationSystem
+About Laravel
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-学生の学年ごと講座がある教育支援システムです。Laravel を用いて構築しました。
+Simple, fast routing engine.
+Powerful dependency injection container.
+Multiple back-ends for session and cache storage.
+Expressive, intuitive database ORM.
+Database agnostic schema migrations.
+Robust background job processing.
+Real-time event broadcasting.
+Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-## 使用技術
+Learning Laravel
+Laravel has the most extensive and thorough documentation and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-- PHP 8.x  
-- Laravel 10  
-- MySQL  
-- Blade  
-- Bootstrap
+You may also try the Laravel Bootcamp, where you will be guided through building a modern Laravel application from scratch.
 
-## 主な機能
+If you don't feel like reading, Laracasts can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-- 学生の登録・編集・削除  
-- 科目の登録・編集・削除  
-- 受講したか確認するシステム 
+Laravel Sponsors
+We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel Patreon page.
 
+Premium Partners
+Vehikl
+Tighten Co.
+Kirschbaum Development Group
+64 Robots
+Cubet Techno Labs
+Cyber-Duck
+Many
+Webdock, Fast VPS Hosting
+DevSquad
+Curotec
+OP.GG
+WebReinvent
+Lendio
+Contributing
+Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the Laravel documentation.
 
-## セットアップ方法
+Code of Conduct
+In order to ensure that the Laravel community is welcoming to all, please review and abide by the Code of Conduct.
 
-```bash
-git clone https://github.com/snyhnd/EducationSystem.git
-cd EducationSystem
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate --seed
-php artisan serve
+Security Vulnerabilities
+If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via taylor@laravel.com. All security vulnerabilities will be promptly addressed.
+
+License
+The Laravel framework is open-sourced software licensed under the MIT license.
